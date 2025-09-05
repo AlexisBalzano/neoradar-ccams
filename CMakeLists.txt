@@ -14,9 +14,10 @@ add_compile_definitions(
 )
 message(STATUS "Plugin version: ${PLUGIN_VERSION}")
 
+add_subdirectory(External/NeoRadarSDK)
+
 # Add SDK include directory
 include_directories(
-    ${CMAKE_SOURCE_DIR}/sdk
     ${CMAKE_SOURCE_DIR}/src
 )
 
@@ -41,6 +42,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     nlohmann_json::nlohmann_json
     OpenSSL::SSL
     OpenSSL::Crypto
+    NeoRadarSDK::NeoRadarSDK
 )
 
 # Set output directory and properties
