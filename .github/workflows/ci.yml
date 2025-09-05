@@ -19,8 +19,6 @@ jobs:
       matrix:
         os: [windows-2022, macos-latest]
         architecture: [x86_64, arm64]
-        # Adds a platform value to the matrix, used later on to run the appropriate
-        # package command.
         include:
           - os: windows-2022
             platform: win
@@ -86,7 +84,10 @@ jobs:
         if: matrix.os == 'macos-latest'
         shell: bash
         run: |
-          cmake . -DPLUGIN_VERSION=${{ steps.compute_version.outputs.version }} -DCMAKE_APPLE_SILICON_PROCESSOR=${{ matrix.architecture }}
+          cmake . -DPLUGIN_VERSION=${{ steps.compute_version.outputs.version }} \
+                 -DCMAKE_APPLE_SILICON_PROCESSOR=${{ matrix.architecture }} \
+                 -DCMAKE_EXE_LINKER_FLAGS="-framework CoreFoundation" \
+                 -DCMAKE_SHARED_LINKER_FLAGS="-framework CoreFoundation"
 
       - name: Build
         shell: bash
