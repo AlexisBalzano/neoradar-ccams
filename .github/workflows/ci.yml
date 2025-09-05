@@ -86,8 +86,8 @@ jobs:
         run: |
           cmake . -DPLUGIN_VERSION=${{ steps.compute_version.outputs.version }} \
                  -DCMAKE_APPLE_SILICON_PROCESSOR=${{ matrix.architecture }} \
-                 -DCMAKE_EXE_LINKER_FLAGS="-framework CoreFoundation" \
-                 -DCMAKE_SHARED_LINKER_FLAGS="-framework CoreFoundation"
+                 -DCMAKE_EXE_LINKER_FLAGS="-framework CoreFoundation -framework CFNetwork" \
+                 -DCMAKE_SHARED_LINKER_FLAGS="-framework CoreFoundation -framework CFNetwork"
 
       - name: Build
         shell: bash
