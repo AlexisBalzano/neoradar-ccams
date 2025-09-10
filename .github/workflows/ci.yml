@@ -19,8 +19,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
         architecture: [x86_64, arm64]
-        # Adds a platform value to the matrix, used later on to run the appropriate
-        # package command.
         include:
           - os: ubuntu-latest
             platform: linux
@@ -54,16 +52,6 @@ jobs:
         uses: benjlevesque/short-sha@v3.0
         id: short-sha
 
-      - name: Compute version
-        id: compute_version
-        shell: bash
-        run: |
-          version="${{ steps.short-sha.outputs.sha }}"
-          if [ "${{ github.ref_type }}" == "tag" ]; then
-            version=$(echo ${{ github.ref }} | sed -E 's/refs\/tags\/(v)?//g')
-          fi
-          echo "version=$version" >> $GITHUB_OUTPUT
-
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
@@ -82,13 +70,13 @@ jobs:
         if: matrix.os != 'macos-latest'
         shell: bash
         run: |
-          cmake . -DPLUGIN_VERSION=${{ steps.compute_version.outputs.version }}
+          cmake .
 
       - name: Configure CMake (MacOS)
         if: matrix.os == 'macos-latest'
         shell: bash
         run: |
-          cmake . -DPLUGIN_VERSION=${{ steps.compute_version.outputs.version }} -DCMAKE_APPLE_SILICON_PROCESSOR=${{ matrix.architecture }}
+          cmake . -DCMAKE_APPLE_SILICON_PROCESSOR=${{ matrix.architecture }}
 
       - name: Build
         shell: bash
@@ -103,4 +91,59 @@ jobs:
           name: NeoCCAMS-${{ matrix.platform }}-${{ matrix.architecture }}
           path: |
             lib/NeoCCAMS*
-            bin\${{ env.build_type }}\NeoCCAMS.dll
+            bin/${{ env.build_type }}/NeoCCAMS*
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all_builds
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install NeoRadar CLI
+        run: yarn global add https://github.com/neoradar-project/cli.git
+
+      - name: Organize plugin binaries for packaging
+        run: |
+          mkdir -p all_builds/NeoCCAMS
+          find all_builds -type f -name 'NeoCCAMS*' -exec cp {} all_builds/NeoCCAMS/ \;
+
+      - name: Rename binaries by platform and architecture
+        shell: bash
+        run: |
+          for f in all_builds/NeoCCAMS/*; do
+            ext="${f##*.}"
+            base=$(basename "$f")
+            # Detect platform and arch from the filename or from the file extension
+            if [[ "$base" == *"dylib" ]]; then
+              # macOS
+              if [[ "$base" == *"arm64"* ]]; then
+                mv "$f" "all_builds/NeoCCAMS/mac-arm64.dylib"
+              else
+                mv "$f" "all_builds/NeoCCAMS/mac-x64.dylib"
+              fi
+            elif [[ "$base" == *"so" ]]; then
+              # Linux
+              mv "$f" "all_builds/NeoCCAMS/linux-x64.so"
+            elif [[ "$base" == *"dll" ]]; then
+              # Windows
+              mv "$f" "all_builds/NeoCCAMS/windows-x64.dll"
+            fi
+          done
+
+      - name: Package .nrplugin
+        run: |
+          echo y | neoradar-cli create-plugin-archives ./all_builds
+
+      - name: Upload final .nrplugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeoCCAMS.nrplugin
+          path: plugins/NeoCCAMS.nrplugin
