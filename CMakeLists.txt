@@ -6,9 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set plugin version
-if (NOT PLUGIN_VERSION)
-    SET(PLUGIN_VERSION "custom-build")
-endif()
+SET(PLUGIN_VERSION "1.5.0")
+
 add_compile_definitions(
     PLUGIN_VERSION="${PLUGIN_VERSION}"
 )
