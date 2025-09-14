@@ -52,14 +52,21 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     PREFIX ""  # Remove "lib" prefix on Unix-like systems
 )
 
-# Add processor-specific output name for Apple platforms
-if(${CMAKE_HOST_APPLE})
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        OUTPUT_NAME ${PROJECT_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}
-    )
-endif()
-
+# Apple-specific settings (target platform)
 if(APPLE)
-  find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
-  target_link_libraries(NeoCCAMS PRIVATE ${COREFOUNDATION_FRAMEWORK})
+    # Processor-specific output name for Apple targets
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        OUTPUT_NAME "${PROJECT_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
+    )
+
+    # Link required Apple frameworks
+    find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(CFNETWORK_FRAMEWORK CFNetwork)
+
+    if(COREFOUNDATION_FRAMEWORK)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${COREFOUNDATION_FRAMEWORK})
+    endif()
+    if(CFNETWORK_FRAMEWORK)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${CFNETWORK_FRAMEWORK})
+    endif()
 endif()
