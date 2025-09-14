@@ -58,3 +58,8 @@ if(${CMAKE_HOST_APPLE})
         OUTPUT_NAME ${PROJECT_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}
     )
 endif()
+
+if(APPLE)
+  find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
+  target_link_libraries(NeoCCAMS PRIVATE ${COREFOUNDATION_FRAMEWORK})
+endif()
