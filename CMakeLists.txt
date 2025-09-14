@@ -44,6 +44,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     NeoRadarSDK::NeoRadarSDK
 )
 
+# Link Apple-specific frameworks
+if(APPLE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE 
+        "-framework CoreFoundation"
+    )
+endif()
+
 # Set output directory and properties
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
