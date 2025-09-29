@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set plugin version
-SET(PLUGIN_VERSION "1.6.0")
+SET(PLUGIN_VERSION "1.6.1")
 
 add_compile_definitions(
     PLUGIN_VERSION="${PLUGIN_VERSION}"
